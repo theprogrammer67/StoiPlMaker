@@ -20,7 +20,8 @@ const
 
 type
   TFileItem = record
-    Path: string;
+    Folder: string;
+    Name: string;
     Size: Integer;
     Index: Integer;
   end;
@@ -45,6 +46,10 @@ type
     fodAddFolder: TFileOpenDialog;
     ilImages: TImageList;
     btnShuffleRandomly: TButton;
+    btnCopyFiles: TButton;
+    pbCopy: TProgressBar;
+    actSave: TAction;
+    fodSaveFiles: TFileOpenDialog;
     procedure actAddDestinationExecute(Sender: TObject);
     procedure btnMakePlaylistClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -53,10 +58,14 @@ type
     procedure lvFilesCompare(Sender: TObject; Item1, Item2: TListItem;
       Data: Integer; var Compare: Integer);
     procedure btnShuffleRandomlyClick(Sender: TObject);
+    procedure btnCopyFilesClick(Sender: TObject);
+    procedure actDeleteDestinationExecute(Sender: TObject);
+    procedure actClearDestinationExecute(Sender: TObject);
+    procedure actSaveExecute(Sender: TObject);
   private
     FSize: Int64;
   private
-    procedure AddFile(const APath: string; ASize: Int64);
+    procedure AddFile(const AFolder, AName: string; ASize: Int64);
     procedure AddFiles(const AFolder: string);
     procedure ClearFiles;
     procedure SaveSettings;
@@ -114,7 +123,7 @@ var
   LFolder: string;
 begin
   if not fodAddFolder.Execute then
-    Abort;
+    Exit;
 
   LFolder := fodAddFolder.FileName;
   LItem := lvFolders.Items.Add;
@@ -123,18 +132,41 @@ begin
   LItem.ImageIndex := 1;
 end;
 
-procedure TfrmMainForm.AddFile(const APath: string; ASize: Int64);
+procedure TfrmMainForm.actClearDestinationExecute(Sender: TObject);
+begin
+  lvFolders.Clear;
+end;
+
+procedure TfrmMainForm.actDeleteDestinationExecute(Sender: TObject);
+var
+  LItem: TListItem;
+begin
+  LItem := lvFolders.Selected;
+  if not Assigned(LItem) then
+    Exit;
+
+  lvFolders.DeleteSelected;
+end;
+
+procedure TfrmMainForm.actSaveExecute(Sender: TObject);
+begin
+  SaveSettings;
+end;
+
+procedure TfrmMainForm.AddFile(const AFolder, AName: string; ASize: Int64);
 var
   LFile: PFileItem;
   LItem: TListItem;
 begin
   LFile := New(PFileItem);
-  LFile.Path := APath;
+  LFile.Folder := AFolder;
+  LFile.Name := AName;
   LFile.Size := ASize;
   LFile.Index := lvFiles.Items.Count;
 
   LItem := lvFiles.Items.Add;
-  LItem.Caption := APath;
+  LItem.Caption := AFolder + AName;
+  LItem.ImageIndex := 7;
   LItem.Data := LFile;
   FSize := FSize + ASize;
 end;
@@ -156,7 +188,7 @@ begin
       begin
         LSize := Int64(SearchRec.FindData.nFileSizeHigh) shl Int64(32) +
           Int64(SearchRec.FindData.nFileSizeLow);
-        AddFile(LFolder + SearchRec.Name, LSize);
+        AddFile(LFolder, SearchRec.Name, LSize);
         FindRes := FindNext(SearchRec);
       end;
 
@@ -179,6 +211,33 @@ begin
     PFileItem(lvFiles.Items[I].Data).Index := Random(LMax);
 
   lvFiles.SortType := stData;
+end;
+
+procedure TfrmMainForm.btnCopyFilesClick(Sender: TObject);
+var
+  I: Integer;
+  LFolder: string;
+  LItem: PFileItem;
+begin
+  if not fodSaveFiles.Execute then
+    Exit;
+
+  pbCopy.Max := lvFiles.Items.Count;
+  pbCopy.Visible := True;
+  try
+    LFolder := IncludeTrailingPathDelimiter(fodSaveFiles.FileName);
+
+    for I := 0 to lvFiles.Items.Count - 1 do
+    begin
+      LItem := PFileItem(lvFiles.Items[I].Data);
+      CopyFile(PWideChar(LItem.Folder + LItem.Name), PWideChar(LFolder + LItem.Name), False);
+
+      pbCopy.Position := I;
+      Application.ProcessMessages;
+    end;
+  finally
+    pbCopy.Visible := False;
+  end;
 end;
 
 procedure TfrmMainForm.btnMakePlaylistClick(Sender: TObject);
