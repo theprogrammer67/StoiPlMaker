@@ -7,7 +7,10 @@ uses
 {$R *.res}
 
 begin
-  Application.Initialize;
+{$IFDEF DEBUG}
+  // Для отображения утечек памяти, если они есть
+  ReportMemoryLeaksOnShutdown := True;
+{$ENDIF}  Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TfrmMainForm, frmMainForm);
   Application.Run;

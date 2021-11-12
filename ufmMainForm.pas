@@ -13,6 +13,14 @@ uses
   Vcl.PlatformDefaultStyleActnCtrls, System.ImageList, Vcl.ImgList;
 
 type
+  TFileItem = record
+    Path: string;
+    Size: Integer;
+    Index: Integer;
+  end;
+
+  PFileItem = ^TFileItem;
+
   TfrmMainForm = class(TForm)
     lvFolders: TListView;
     lvFiles: TListView;
@@ -32,11 +40,13 @@ type
     ilImages: TImageList;
     procedure actAddDestinationExecute(Sender: TObject);
     procedure btnMakePlaylistClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     FSize: Int64;
   private
     procedure AddFile(const APath: string; ASize: Int64);
     procedure AddFiles(const AFolder: string);
+    procedure ClearFiles;
   public
     { Public declarations }
   end;
@@ -54,15 +64,15 @@ const
   Description: Array [0 .. 8] of string = ('Bytes', 'KB', 'MB', 'GB', 'TB',
     'PB', 'EB', 'ZB', 'YB');
 var
-  i: Integer;
+  I: Integer;
 begin
-  i := 0;
+  I := 0;
 
-  while Bytes > Power(1024, i + 1) do
-    Inc(i);
+  while Bytes > Power(1024, I + 1) do
+    Inc(I);
 
-  Result := FormatFloat('###0.##', Bytes / IntPower(1024, i)) + ' ' +
-    Description[i];
+  Result := FormatFloat('###0.##', Bytes / IntPower(1024, I)) + ' ' +
+    Description[I];
 end;
 
 {$R *.dfm}
@@ -83,8 +93,19 @@ begin
 end;
 
 procedure TfrmMainForm.AddFile(const APath: string; ASize: Int64);
+var
+  LFile: PFileItem;
+  LItem: TListItem;
 begin
-  lvFiles.AddItem(APath, nil);
+  LFile := New(PFileItem);
+  LFile.Path := APath;
+  LFile.Size := ASize;
+  LFile.Index := 0;
+
+//  lvFiles.AddItem(APath, nil);
+  LItem := lvFiles.Items.Add;
+  LItem.Caption := APath;
+  LItem.Data := LFile;
   FSize := FSize + ASize;
 end;
 
@@ -118,14 +139,37 @@ end;
 
 procedure TfrmMainForm.btnMakePlaylistClick(Sender: TObject);
 var
-  i: Integer;
+  I: Integer;
 begin
-  FSize := 0;
-  for i := 0 to lvFolders.Items.Count - 1 do
-    AddFiles(lvFolders.Items[i].Caption);
+  ClearFiles;
+
+  for I := 0 to lvFolders.Items.Count - 1 do
+    AddFiles(lvFolders.Items[I].Caption);
 
   statFiles.Panels[0].Text := ConvertBytes(FSize);
 end;
 
+procedure TfrmMainForm.ClearFiles;
+var
+  I: Integer;
+begin
+  FSize := 0;
+
+  for I := 0 to lvFiles.Items.Count - 1 do
+  begin
+    if lvFiles.Items[I].Data <> nil then
+    begin
+      Dispose(PFileItem(lvFiles.Items[I].Data));
+      lvFiles.Items[I].Data := nil;
+    end;
+  end;
+
+  lvFiles.Clear;
+end;
+
+procedure TfrmMainForm.FormDestroy(Sender: TObject);
+begin
+  ClearFiles;
+end;
 
 end.
