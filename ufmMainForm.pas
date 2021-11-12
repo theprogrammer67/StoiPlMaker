@@ -10,7 +10,13 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls,
   Vcl.ExtCtrls,
   Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, System.Actions, Vcl.ActnList,
-  Vcl.PlatformDefaultStyleActnCtrls, System.ImageList, Vcl.ImgList;
+  Vcl.PlatformDefaultStyleActnCtrls, System.ImageList, Vcl.ImgList,
+  System.IniFiles, Winapi.ShlObj;
+
+const
+  INI_FILENAME = 'settings.ini';
+  APPDATA_DIR = 'StoiPlMaker';
+  TAG_SETTINGS = 'settings';
 
 type
   TFileItem = record
@@ -38,15 +44,23 @@ type
     pnlRight: TPanel;
     fodAddFolder: TFileOpenDialog;
     ilImages: TImageList;
+    btnShuffleRandomly: TButton;
     procedure actAddDestinationExecute(Sender: TObject);
     procedure btnMakePlaylistClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure lvFilesCompare(Sender: TObject; Item1, Item2: TListItem;
+      Data: Integer; var Compare: Integer);
+    procedure btnShuffleRandomlyClick(Sender: TObject);
   private
     FSize: Int64;
   private
     procedure AddFile(const APath: string; ASize: Int64);
     procedure AddFiles(const AFolder: string);
     procedure ClearFiles;
+    procedure SaveSettings;
+    procedure ReadSettings;
   public
     { Public declarations }
   end;
@@ -56,8 +70,7 @@ var
 
 implementation
 
-uses
-  Math;
+uses Math;
 
 function ConvertBytes(Bytes: Int64): string;
 const
@@ -73,6 +86,24 @@ begin
 
   Result := FormatFloat('###0.##', Bytes / IntPower(1024, I)) + ' ' +
     Description[I];
+end;
+
+function GetSpecialPath(CSIDL: Word): string;
+var
+  S: string;
+begin
+  SetLength(S, MAX_PATH);
+  if not SHGetSpecialFolderPath(0, PChar(S), CSIDL, True) then
+    S := GetSpecialPath(CSIDL_APPDATA);
+  Result := IncludeTrailingPathDelimiter(PChar(S));
+end;
+
+function GetIniFilePath: string;
+begin
+  Result := IncludeTrailingPathDelimiter(GetSpecialPath(CSIDL_COMMON_APPDATA) +
+    APPDATA_DIR);
+  ForceDirectories(Result);
+  Result := Result + INI_FILENAME;
 end;
 
 {$R *.dfm}
@@ -100,9 +131,8 @@ begin
   LFile := New(PFileItem);
   LFile.Path := APath;
   LFile.Size := ASize;
-  LFile.Index := 0;
+  LFile.Index := lvFiles.Items.Count;
 
-//  lvFiles.AddItem(APath, nil);
   LItem := lvFiles.Items.Add;
   LItem.Caption := APath;
   LItem.Data := LFile;
@@ -137,6 +167,20 @@ begin
   end;
 end;
 
+procedure TfrmMainForm.btnShuffleRandomlyClick(Sender: TObject);
+var
+  I, LMax: Integer;
+begin
+  lvFiles.SortType := stNone;
+
+  Randomize;
+  LMax := lvFiles.Items.Count;
+  for I := 0 to lvFiles.Items.Count - 1 do
+    PFileItem(lvFiles.Items[I].Data).Index := Random(LMax);
+
+  lvFiles.SortType := stData;
+end;
+
 procedure TfrmMainForm.btnMakePlaylistClick(Sender: TObject);
 var
   I: Integer;
@@ -153,6 +197,7 @@ procedure TfrmMainForm.ClearFiles;
 var
   I: Integer;
 begin
+  lvFiles.SortType := stNone;
   FSize := 0;
 
   for I := 0 to lvFiles.Items.Count - 1 do
@@ -167,9 +212,84 @@ begin
   lvFiles.Clear;
 end;
 
+procedure TfrmMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  SaveSettings;
+end;
+
+procedure TfrmMainForm.FormCreate(Sender: TObject);
+begin
+  ReadSettings;
+end;
+
 procedure TfrmMainForm.FormDestroy(Sender: TObject);
 begin
   ClearFiles;
+end;
+
+procedure TfrmMainForm.lvFilesCompare(Sender: TObject; Item1, Item2: TListItem;
+  Data: Integer; var Compare: Integer);
+var
+  LFile1Ind, LFile2Ind: Integer;
+begin
+  if (Item1.Data = nil) or (Item2.Data = nil) then
+    Exit;
+
+  LFile1Ind := PFileItem(Item1.Data).Index;
+  LFile2Ind := PFileItem(Item2.Data).Index;
+
+  if LFile1Ind > LFile2Ind then
+    Compare := 1
+  else if LFile1Ind < LFile2Ind then
+    Compare := -1
+  else
+    Compare := 0;
+end;
+
+procedure TfrmMainForm.ReadSettings;
+var
+  Ini: TIniFile;
+  LFolders: TStrings;
+  I: Integer;
+  LItem: TListItem;
+begin
+  Ini := TIniFile.Create(GetIniFilePath);
+  try
+    lvFolders.Clear;
+    LFolders := TStringList.Create;
+    try
+      Ini.ReadSectionValues('folders', LFolders);
+      for I := 0 to LFolders.Count - 1 do
+      begin
+        LItem := lvFolders.Items.Add;
+        LItem.Caption := LFolders.KeyNames[I];
+        LItem.Checked := StrToBoolDef(LFolders.ValueFromIndex[I], False);
+        LItem.ImageIndex := 1;
+      end;
+    finally
+      FreeAndNil(LFolders);
+    end;
+  finally
+    FreeAndNil(Ini);
+  end;
+end;
+
+procedure TfrmMainForm.SaveSettings;
+var
+  Ini: TIniFile;
+  I: Integer;
+begin
+  Ini := TIniFile.Create(GetIniFilePath);
+  try
+    Ini.EraseSection('folders');
+    for I := 0 to lvFolders.Items.Count - 1 do
+    begin
+      Ini.WriteString('folders', lvFolders.Items[I].Caption,
+        DefaultTrueBoolStr);
+    end;
+  finally
+    FreeAndNil(Ini);
+  end;
 end;
 
 end.

@@ -12,6 +12,8 @@ object frmMainForm: TfrmMainForm
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
@@ -102,6 +104,7 @@ object frmMainForm: TfrmMainForm
           end>
         TabOrder = 0
         ViewStyle = vsReport
+        OnCompare = lvFilesCompare
         ExplicitWidth = 383
         ExplicitHeight = 263
       end
@@ -133,7 +136,7 @@ object frmMainForm: TfrmMainForm
       1048
       57)
     object btnMakePlaylist: TButton
-      Left = 922
+      Left = 810
       Top = 14
       Width = 107
       Height = 25
@@ -141,7 +144,16 @@ object frmMainForm: TfrmMainForm
       Caption = 'Make playlist'
       TabOrder = 0
       OnClick = btnMakePlaylistClick
-      ExplicitLeft = 496
+    end
+    object btnShuffleRandomly: TButton
+      Left = 923
+      Top = 14
+      Width = 110
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Shuffle randomly'
+      TabOrder = 1
+      OnClick = btnShuffleRandomlyClick
     end
   end
   object amActions: TActionManager
