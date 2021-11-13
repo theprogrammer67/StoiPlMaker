@@ -2,7 +2,8 @@ program StoiPlMaker;
 
 uses
   Vcl.Forms,
-  ufmMainForm in 'ufmMainForm.pas' {frmMainForm};
+  ufmMainForm in 'ufmMainForm.pas' {frmMainForm},
+  FastCopy in 'FastCopy.pas';
 
 {$R *.res}
 

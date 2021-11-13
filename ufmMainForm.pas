@@ -11,7 +11,7 @@ uses
   Vcl.ExtCtrls,
   Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, System.Actions, Vcl.ActnList,
   Vcl.PlatformDefaultStyleActnCtrls, System.ImageList, Vcl.ImgList,
-  System.IniFiles, Winapi.ShlObj;
+  System.IniFiles, Winapi.ShlObj, FastCopy;
 
 const
   INI_FILENAME = 'settings.ini';
@@ -50,6 +50,7 @@ type
     pbCopy: TProgressBar;
     actSave: TAction;
     fodSaveFiles: TFileOpenDialog;
+    statBottom: TStatusBar;
     procedure actAddDestinationExecute(Sender: TObject);
     procedure btnMakePlaylistClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -64,14 +65,17 @@ type
     procedure actSaveExecute(Sender: TObject);
   private
     FSize: Int64;
+    FCopyng: Boolean;
   private
     procedure AddFile(const AFolder, AName: string; ASize: Int64);
     procedure AddFiles(const AFolder: string);
     procedure ClearFiles;
+    procedure CopyFiles(const AFolder: string);
     procedure SaveSettings;
     procedure ReadSettings;
+    procedure SetCopyng(const Value: Boolean);
   public
-    { Public declarations }
+    property Copyng: Boolean read FCopyng write SetCopyng;
   end;
 
 var
@@ -214,30 +218,17 @@ begin
 end;
 
 procedure TfrmMainForm.btnCopyFilesClick(Sender: TObject);
-var
-  I: Integer;
-  LFolder: string;
-  LItem: PFileItem;
 begin
+  if Copyng then
+  begin
+    Copyng := False;
+    Exit;
+  end;
+
   if not fodSaveFiles.Execute then
     Exit;
 
-  pbCopy.Max := lvFiles.Items.Count;
-  pbCopy.Visible := True;
-  try
-    LFolder := IncludeTrailingPathDelimiter(fodSaveFiles.FileName);
-
-    for I := 0 to lvFiles.Items.Count - 1 do
-    begin
-      LItem := PFileItem(lvFiles.Items[I].Data);
-      CopyFile(PWideChar(LItem.Folder + LItem.Name), PWideChar(LFolder + LItem.Name), False);
-
-      pbCopy.Position := I;
-      Application.ProcessMessages;
-    end;
-  finally
-    pbCopy.Visible := False;
-  end;
+  CopyFiles(fodSaveFiles.FileName);
 end;
 
 procedure TfrmMainForm.btnMakePlaylistClick(Sender: TObject);
@@ -269,6 +260,46 @@ begin
   end;
 
   lvFiles.Clear;
+end;
+
+procedure TfrmMainForm.CopyFiles(const AFolder: string);
+var
+  I: Integer;
+  LItem: PFileItem;
+  LFolder, LSrcFile, LDstFile: string;
+begin
+  if FCopyng then
+    Exit;
+
+  pbCopy.Max := lvFiles.Items.Count;
+  pbCopy.Visible := True;
+  Copyng := True;
+  try
+    LFolder := IncludeTrailingPathDelimiter(AFolder);
+
+    for I := 0 to lvFiles.Items.Count - 1 do
+    begin
+      LItem := PFileItem(lvFiles.Items[I].Data);
+      LSrcFile := LItem.Folder + LItem.Name;
+      LDstFile := LFolder + LItem.Name;
+
+      statBottom.Panels[0].Text := LSrcFile;
+      Application.ProcessMessages;
+
+      CopyFile(PWideChar(LSrcFile), PWideChar(LDstFile), False);
+//      FastCopyFile(LSrcFile, LDstFile);
+
+
+      pbCopy.Position := I;
+      Application.ProcessMessages;
+
+      if not FCopyng then
+        Exit;
+    end;
+  finally
+    Copyng := False;
+    pbCopy.Visible := False;
+  end;
 end;
 
 procedure TfrmMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -349,6 +380,19 @@ begin
   finally
     FreeAndNil(Ini);
   end;
+end;
+
+procedure TfrmMainForm.SetCopyng(const Value: Boolean);
+begin
+  FCopyng := Value;
+  if FCopyng then
+    btnCopyFiles.Caption := 'Abort'
+  else
+    btnCopyFiles.Caption := 'Copy files';
+
+  statBottom.Panels[0].Text := '';
+
+  Application.ProcessMessages;
 end;
 
 end.

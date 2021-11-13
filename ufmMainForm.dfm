@@ -2,7 +2,7 @@ object frmMainForm: TfrmMainForm
   Left = 0
   Top = 0
   Caption = 'Play list maker'
-  ClientHeight = 460
+  ClientHeight = 479
   ClientWidth = 1048
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -21,15 +21,14 @@ object frmMainForm: TfrmMainForm
     Left = 0
     Top = 0
     Width = 1048
-    Height = 403
+    Height = 400
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 622
-    ExplicitHeight = 290
+    ExplicitHeight = 403
     object spl1: TSplitter
       Left = 233
       Top = 1
-      Height = 401
+      Height = 398
       ExplicitLeft = 280
       ExplicitTop = 168
       ExplicitHeight = 100
@@ -38,15 +37,15 @@ object frmMainForm: TfrmMainForm
       Left = 1
       Top = 1
       Width = 232
-      Height = 401
+      Height = 398
       Align = alLeft
       TabOrder = 0
-      ExplicitHeight = 288
+      ExplicitHeight = 401
       object lvFolders: TListView
         Left = 1
         Top = 1
         Width = 230
-        Height = 373
+        Height = 370
         Align = alClient
         Columns = <
           item
@@ -57,11 +56,11 @@ object frmMainForm: TfrmMainForm
         StateImages = ilImages
         TabOrder = 0
         ViewStyle = vsReport
-        ExplicitHeight = 260
+        ExplicitHeight = 373
       end
       object acttbDestionation: TActionToolBar
         Left = 1
-        Top = 374
+        Top = 371
         Width = 230
         Height = 26
         ActionManager = amActions
@@ -79,23 +78,22 @@ object frmMainForm: TfrmMainForm
         Font.Style = []
         ParentFont = False
         Spacing = 0
-        ExplicitTop = 261
+        ExplicitTop = 374
       end
     end
     object pnlRight: TPanel
       Left = 236
       Top = 1
       Width = 811
-      Height = 401
+      Height = 398
       Align = alClient
       TabOrder = 1
-      ExplicitWidth = 385
-      ExplicitHeight = 288
+      ExplicitHeight = 401
       object lvFiles: TListView
         Left = 1
         Top = 1
         Width = 809
-        Height = 376
+        Height = 373
         Align = alClient
         Columns = <
           item
@@ -107,12 +105,11 @@ object frmMainForm: TfrmMainForm
         TabOrder = 0
         ViewStyle = vsReport
         OnCompare = lvFilesCompare
-        ExplicitLeft = 2
-        ExplicitTop = -5
+        ExplicitHeight = 376
       end
       object statFiles: TStatusBar
         Left = 1
-        Top = 377
+        Top = 374
         Width = 809
         Height = 23
         Panels = <
@@ -120,22 +117,20 @@ object frmMainForm: TfrmMainForm
             Text = '0'
             Width = 250
           end>
-        ExplicitTop = 264
-        ExplicitWidth = 383
+        ExplicitTop = 377
       end
     end
   end
   object pnlBottom: TPanel
     Left = 0
-    Top = 403
+    Top = 400
     Width = 1048
-    Height = 57
+    Height = 79
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 407
     DesignSize = (
       1048
-      57)
+      79)
     object btnMakePlaylist: TButton
       Left = 714
       Top = 14
@@ -173,6 +168,20 @@ object frmMainForm: TfrmMainForm
       Height = 17
       TabOrder = 3
       Visible = False
+    end
+    object statBottom: TStatusBar
+      Left = 1
+      Top = 59
+      Width = 1046
+      Height = 19
+      Panels = <
+        item
+          Text = '123'
+          Width = 1000
+        end>
+      ExplicitLeft = 496
+      ExplicitTop = 48
+      ExplicitWidth = 0
     end
   end
   object amActions: TActionManager
