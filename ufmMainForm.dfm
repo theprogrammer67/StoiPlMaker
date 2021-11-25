@@ -24,7 +24,6 @@ object frmMainForm: TfrmMainForm
     Height = 400
     Align = alClient
     TabOrder = 0
-    ExplicitHeight = 403
     object spl1: TSplitter
       Left = 233
       Top = 1
@@ -40,7 +39,6 @@ object frmMainForm: TfrmMainForm
       Height = 398
       Align = alLeft
       TabOrder = 0
-      ExplicitHeight = 401
       object lvFolders: TListView
         Left = 1
         Top = 1
@@ -56,7 +54,6 @@ object frmMainForm: TfrmMainForm
         StateImages = ilImages
         TabOrder = 0
         ViewStyle = vsReport
-        ExplicitHeight = 373
       end
       object acttbDestionation: TActionToolBar
         Left = 1
@@ -78,7 +75,6 @@ object frmMainForm: TfrmMainForm
         Font.Style = []
         ParentFont = False
         Spacing = 0
-        ExplicitTop = 374
       end
     end
     object pnlRight: TPanel
@@ -88,7 +84,6 @@ object frmMainForm: TfrmMainForm
       Height = 398
       Align = alClient
       TabOrder = 1
-      ExplicitHeight = 401
       object lvFiles: TListView
         Left = 1
         Top = 1
@@ -105,7 +100,6 @@ object frmMainForm: TfrmMainForm
         TabOrder = 0
         ViewStyle = vsReport
         OnCompare = lvFilesCompare
-        ExplicitHeight = 376
       end
       object statFiles: TStatusBar
         Left = 1
@@ -117,7 +111,6 @@ object frmMainForm: TfrmMainForm
             Text = '0'
             Width = 250
           end>
-        ExplicitTop = 377
       end
     end
   end
@@ -163,9 +156,10 @@ object frmMainForm: TfrmMainForm
     end
     object pbCopy: TProgressBar
       Left = 24
-      Top = 24
-      Width = 150
+      Top = 18
+      Width = 641
       Height = 17
+      Anchors = [akLeft, akTop, akRight]
       TabOrder = 3
       Visible = False
     end
@@ -179,9 +173,6 @@ object frmMainForm: TfrmMainForm
           Text = '123'
           Width = 1000
         end>
-      ExplicitLeft = 496
-      ExplicitTop = 48
-      ExplicitWidth = 0
     end
   end
   object amActions: TActionManager

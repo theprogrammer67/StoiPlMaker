@@ -210,7 +210,7 @@ begin
   lvFiles.SortType := stNone;
 
   Randomize;
-  LMax := lvFiles.Items.Count;
+  LMax := lvFiles.Items.Count * 10;
   for I := 0 to lvFiles.Items.Count - 1 do
     PFileItem(lvFiles.Items[I].Data).Index := Random(LMax);
 
